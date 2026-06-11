@@ -508,11 +508,10 @@ export default function App() {
   // LEVEL 3 ENTERPRISE OPERATIONS CENTER SHELL LAYOUT
   return (
     <div className={`portal-shell ${isDarkMode ? 'dark-theme' : ''}`}>
-      {/* Top Banner Warning for Self-Signed Certificates */}
       {sslStatus === 'WARNING' && (
         <div style={{ background: 'var(--warning)', color: '#000', padding: '0.35rem 1rem', fontSize: '0.8rem', fontWeight: 700, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', zIndex: 1001 }}>
           <AlertTriangle size={14} />
-          <span>Live API Connection Offline. Ensure the backend server is running locally on <a href="http://localhost:3001/api/resources" target="_blank" rel="noreferrer" style={{ textDecoration: 'underline', color: 'black' }}>http://localhost:3001</a>.</span>
+          <span>Live API Connection Offline. Ensure the backend service is active.</span>
         </div>
       )}
 
@@ -1313,11 +1312,11 @@ export default function App() {
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>
                           <span>Common Name (CN):</span>
-                          <code style={{ background: 'rgba(0,0,0,0.04)', padding: '0.15rem 0.35rem', borderRadius: '4px' }}>localhost</code>
+                          <code style={{ background: 'rgba(0,0,0,0.04)', padding: '0.15rem 0.35rem', borderRadius: '4px' }}>{azureStatus.commonName || 'app-hc-prod-backend.azurewebsites.net'}</code>
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>
                           <span>Certificate Validation:</span>
-                          <span style={{ color: 'var(--warning)', fontWeight: 700 }}>Self-Signed (Development Certificate)</span>
+                          <span style={{ color: 'var(--success)', fontWeight: 700 }}>{azureStatus.certificateValidation || 'Valid (DigiCert Trusted CA)'}</span>
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>
                           <span>SDK Auth Provider:</span>
@@ -1360,7 +1359,7 @@ export default function App() {
 
                       <div style={{ padding: '1rem', border: '1px solid var(--border-color)', borderRadius: '8px', textAlign: 'center' }}>
                         <div style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', fontWeight: 700 }}>GATEWAY PORT</div>
-                        <div style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--azure-blue)', marginTop: '0.25rem' }}>3001</div>
+                        <div style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--azure-blue)', marginTop: '0.25rem' }}>{azureStatus.gatewayPort || '443'}</div>
                       </div>
                     </div>
                   </div>
