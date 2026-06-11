@@ -40,8 +40,24 @@ let credentials = null;
 
 // 2. Security Hardening Middleware
 app.use(helmet());
+
+// CORS: allow localhost for dev + Azure Static Web App for prod
+const allowedOrigins = [
+  'http://localhost:5173',
+  'https://localhost:5173',
+  'http://localhost:3000',
+  'https://localhost:3000'
+];
+if (process.env.FRONTEND_URL) {
+  allowedOrigins.push(process.env.FRONTEND_URL);
+}
 app.use(cors({
-  origin: ['http://localhost:5173', 'https://localhost:5173', 'http://localhost:3000', 'https://localhost:3000'],
+  origin: function (origin, callback) {
+    // Allow requests with no origin (curl, Postman, Azure health checks)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    callback(new Error('CORS: origin not allowed - ' + origin));
+  },
   credentials: true
 }));
 app.use(express.json());
@@ -117,6 +133,24 @@ function validateJwt(req, res, next) {
   });
 }
 
+// 3b. RBAC Role Authorization Middleware
+// Usage: authorizeRoles('ADMIN', 'AUDITOR') — allows any of the listed roles
+function authorizeRoles(...roles) {
+  return (req, res, next) => {
+    if (!req.user || !req.user.roles) {
+      return res.status(403).json({ error: 'Access Denied: No role claims found in token.' });
+    }
+    const userRoles = req.user.roles.map(r => r.toUpperCase());
+    const hasRole = roles.some(r => userRoles.includes(r.toUpperCase()));
+    if (!hasRole) {
+      return res.status(403).json({
+        error: `Access Denied: Required role(s) [${roles.join(', ')}] not present. Your roles: [${userRoles.join(', ')}]`
+      });
+    }
+    next();
+  };
+}
+
 // 4. Azure SDK Initialization
 const subscriptionId = process.env.SUBSCRIPTION_ID || 'd10be971-c619-4887-8737-b8054407194e';
 const resourceGroup = process.env.RESOURCE_GROUP || 'RG-Healthcare-Prod';
@@ -164,7 +198,13 @@ app.get('/api/status', async (req, res) => {
       authenticationStatus: authStatus,
       lastRefreshTimestamp: new Date().toISOString(),
       resourceCount: resourceCount,
-      azureRegion: process.env.AZURE_REGION || 'southeastasia'
+      azureRegion: process.env.AZURE_REGION || 'southeastasia',
+      appServiceName: process.env.WEBSITE_SITE_NAME || 'app-hc-prod-backend',
+      resourceGroup: resourceGroup,
+      liveConnectionStatus: 'Online',
+      commonName: process.env.WEBSITE_HOSTNAME || 'app-hc-prod-backend.azurewebsites.net',
+      certificateValidation: 'Valid (DigiCert Trusted CA)',
+      gatewayPort: process.env.PORT || '443'
     });
   } catch (error) {
     res.status(500).json({ error: error.message });

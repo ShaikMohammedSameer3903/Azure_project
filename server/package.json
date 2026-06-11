@@ -3,6 +3,10 @@
   "version": "1.0.0",
   "description": "Live Azure Integration Backend Service for Healthcare Operations Dashboard",
   "main": "index.js",
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  },
   "scripts": {
     "start": "node index.js"
   },
