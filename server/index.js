@@ -46,16 +46,24 @@ const allowedOrigins = [
   'http://localhost:5173',
   'https://localhost:5173',
   'http://localhost:3000',
-  'https://localhost:3000'
+  'https://localhost:3000',
+  // Azure Static Web Apps — production frontend
+  'https://zealous-river-08f22d600.7.azurestaticapps.net'
 ];
+// Also support additional origins from env (e.g. custom domain)
 if (process.env.FRONTEND_URL) {
   allowedOrigins.push(process.env.FRONTEND_URL);
 }
 app.use(cors({
   origin: function (origin, callback) {
-    // Allow requests with no origin (curl, Postman, Azure health checks)
+    // Allow requests with no origin (curl, Postman, Azure health checks, same-origin)
     if (!origin) return callback(null, true);
+    // Exact match
     if (allowedOrigins.includes(origin)) return callback(null, true);
+    // Wildcard: allow all *.azurestaticapps.net deployments
+    if (/^https:\/\/[a-z0-9-]+\.azurestaticapps\.net$/.test(origin)) return callback(null, true);
+    // Wildcard: allow all *.azurewebsites.net (for Kudu / SCM)
+    if (/^https:\/\/[a-z0-9-]+\.azurewebsites\.net$/.test(origin)) return callback(null, true);
     callback(new Error('CORS: origin not allowed - ' + origin));
   },
   credentials: true
