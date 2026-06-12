@@ -1,11 +1,74 @@
 // ============================================================
-// Database Manager (SQLite)
+// Database Manager (SQLite via better-sqlite3)
+// better-sqlite3 ships prebuilt binaries for linux-x64/GLIBC 2.17+
+// This avoids the GLIBC 2.38 mismatch that native sqlite3 causes on
+// Azure App Service (appsvc/node:20-lts, which ships GLIBC 2.36).
+// All public methods return Promises for API compatibility.
 // ============================================================
 
 const path = require('path');
 const fs = require('fs');
-const sqlite3 = require('sqlite3');
-const { open } = require('sqlite');
+const BetterSQLite3 = require('better-sqlite3');
+
+// ─── Promise-compatible shim around better-sqlite3 ───────────────────────────
+class AsyncDB {
+  constructor(filename) {
+    this._db = new BetterSQLite3(filename);
+    this._db.pragma('journal_mode = WAL');
+  }
+
+  /** Run a statement; returns { lastID, changes } */
+  run(sql, params = []) {
+    try {
+      const stmt = this._db.prepare(sql);
+      const info = Array.isArray(params) ? stmt.run(...params) : stmt.run(params);
+      return Promise.resolve({ lastID: info.lastInsertRowid, changes: info.changes });
+    } catch (err) {
+      return Promise.reject(err);
+    }
+  }
+
+  /** Return the first matching row or undefined */
+  get(sql, params = []) {
+    try {
+      const stmt = this._db.prepare(sql);
+      const row = Array.isArray(params) ? stmt.get(...params) : stmt.get(params);
+      return Promise.resolve(row);
+    } catch (err) {
+      return Promise.reject(err);
+    }
+  }
+
+  /** Return all matching rows */
+  all(sql, params = []) {
+    try {
+      const stmt = this._db.prepare(sql);
+      const rows = Array.isArray(params) ? stmt.all(...params) : stmt.all(params);
+      return Promise.resolve(rows);
+    } catch (err) {
+      return Promise.reject(err);
+    }
+  }
+
+  /** Execute multiple statements (no params) */
+  exec(sql) {
+    try {
+      this._db.exec(sql);
+      return Promise.resolve();
+    } catch (err) {
+      return Promise.reject(err);
+    }
+  }
+
+  /** Run a callback inside a transaction */
+  transaction(fn) {
+    return this._db.transaction(fn);
+  }
+
+  close() {
+    this._db.close();
+  }
+}
 
 let db = null;
 
@@ -19,11 +82,8 @@ async function getDatabase() {
     fs.mkdirSync(dbDir, { recursive: true });
   }
 
-  // Open the SQLite database
-  db = await open({
-    filename: dbPath,
-    driver: sqlite3.Database
-  });
+  // Open the SQLite database via better-sqlite3 (no GLIBC 2.38 requirement)
+  db = new AsyncDB(dbPath);
 
   // Enable foreign key support
   await db.run('PRAGMA foreign_keys = ON;');
