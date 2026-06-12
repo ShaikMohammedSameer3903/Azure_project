@@ -1,0 +1,33 @@
+{
+  "name": "azure-healthcare-server",
+  "version": "1.0.0",
+  "description": "Live Azure Integration Backend Service for Healthcare Operations Dashboard",
+  "main": "index.js",
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  },
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@azure/arm-consumption": "^9.2.0",
+    "@azure/arm-monitor": "^7.0.0",
+    "@azure/arm-policy": "^7.0.0",
+    "@azure/arm-recoveryservices": "^7.0.0",
+    "@azure/arm-recoveryservicesbackup": "^13.2.0",
+    "@azure/arm-resources": "^7.0.0",
+    "@azure/identity": "^4.13.1",
+    "@azure/keyvault-secrets": "^4.8.0",
+    "applicationinsights": "^2.9.2",
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "express-rate-limit": "^8.5.2",
+    "helmet": "^8.2.0",
+    "jsonwebtoken": "^9.0.3",
+    "jwks-rsa": "^4.0.1"
+  },
+  "devDependencies": {
+    "selfsigned": "^5.5.0"
+  }
+}
