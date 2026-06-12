@@ -236,7 +236,7 @@ export default function Dashboard() {
     const list = activeEnvironment === 'All' 
       ? incidents 
       : incidents.filter(i => {
-          const res = resources.find(r => r.id === i.resource_id);
+          const res = resources.find(r => r.id === (i.relatedResourceId || (i as any).resource_id));
           return res?.tags?.Environment?.toLowerCase() === activeEnvironment.toLowerCase() || res?.tags?.environment?.toLowerCase() === activeEnvironment.toLowerCase();
         });
     return list.filter(i => i.status !== 'Closed' && i.status !== 'Resolved').length;

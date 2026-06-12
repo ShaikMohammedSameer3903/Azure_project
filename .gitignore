@@ -26,9 +26,17 @@ dist-ssr
 # Deployment artifacts (generated during CI/CD — do not commit)
 backend.zip
 backend-deploy.zip
+backend_deploy.zip
+backend_src.tar.gz
 source-deploy.zip
 webapp_logs.zip
 webapp_logs_extracted/
+logs.zip
+new_logs*.zip
+extracted_logs/
+new_extracted_logs*/
+new_logs3/
+temp_backend/
 
 # TLS certificates (generated locally)
 server/cert.pem
