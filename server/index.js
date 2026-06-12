@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const https = require('https');
@@ -178,9 +179,9 @@ const consumptionClient = new ConsumptionManagementClient(credential, subscripti
 // Health endpoints
 app.get('/health', (req, res) => {
   res.json({
-    status: 'Healthy',
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime()
+    status: "healthy",
+    service: "backend",
+    timestamp: new Date().toISOString()
   });
 });
 
