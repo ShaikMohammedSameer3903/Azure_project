@@ -234,34 +234,52 @@ async function listResourceGroupsWithCounts(tenantId, subscriptionId) {
   );
   if (!sub) throw new Error(`Subscription ${subscriptionId} not found`);
 
-  const clients = await getAzureClients(tenantId, sub.id);
-  const resourceClient = clients.resourceClient;
-
   const groups = [];
-  const pager = resourceClient.resourceGroups.list();
+  try {
+    const clients = await getAzureClients(tenantId, sub.id);
+    const resourceClient = clients.resourceClient;
 
-  for await (const rg of pager) {
-    groups.push({
-      id: rg.id,
-      name: rg.name,
-      location: rg.location,
-      provisioningState: rg.properties?.provisioningState || 'Succeeded',
-      tags: rg.tags || {}
-    });
+    const pager = resourceClient.resourceGroups.list();
+
+    for await (const rg of pager) {
+      groups.push({
+        id: rg.id,
+        name: rg.name,
+        location: rg.location,
+        provisioningState: rg.properties?.provisioningState || 'Succeeded',
+        tags: rg.tags || {}
+      });
+    }
+
+    // Get resource counts per group from DB (fast — avoids extra API calls)
+    const counts = await db.all(
+      'SELECT resource_group, COUNT(*) as count FROM resources WHERE subscription_id = ? GROUP BY resource_group',
+      [sub.id]
+    );
+    const countMap = {};
+    counts.forEach(c => { countMap[c.resource_group] = c.count; });
+
+    return groups.map(rg => ({
+      ...rg,
+      resourceCount: countMap[rg.name] || 0
+    }));
+  } catch (err) {
+    if (err.code === 'DEMO_MODE' || err.message?.includes('DEMO_MODE') || err.message?.includes('No real Azure credentials')) {
+      const counts = await db.all(
+        'SELECT resource_group, COUNT(*) as count FROM resources WHERE subscription_id = ? GROUP BY resource_group',
+        [sub.id]
+      );
+      return counts.map(c => ({
+        id: `/subscriptions/${sub.subscription_id || subscriptionId}/resourceGroups/${c.resource_group}`,
+        name: c.resource_group,
+        location: 'southeastasia',
+        provisioningState: 'Succeeded',
+        tags: { Environment: sub.name?.includes('Healthcare') ? 'Healthcare' : 'University' },
+        resourceCount: c.count
+      }));
+    }
+    throw err;
   }
-
-  // Get resource counts per group from DB (fast — avoids extra API calls)
-  const counts = await db.all(
-    'SELECT resource_group, COUNT(*) as count FROM resources WHERE subscription_id = ? GROUP BY resource_group',
-    [sub.id]
-  );
-  const countMap = {};
-  counts.forEach(c => { countMap[c.resource_group] = c.count; });
-
-  return groups.map(rg => ({
-    ...rg,
-    resourceCount: countMap[rg.name] || 0
-  }));
 }
 
 module.exports = {

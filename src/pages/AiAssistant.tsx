@@ -34,7 +34,8 @@ export default function AiAssistant() {
 
   // Set default welcome message if chat history is empty
   useEffect(() => {
-    if (aiMessages.length === 0 || !aiMessages.some(m => m.id === 'welcome-msg')) {
+    const currentMessages = useAppStore.getState().aiMessages;
+    if (currentMessages.length === 0 || !currentMessages.some(m => m.id === 'welcome-msg')) {
       addAiMessage({
         id: 'welcome-msg',
         role: 'assistant',
@@ -46,7 +47,7 @@ How can I help you today? Select a quick prompt below or type your question.`,
         timestamp: new Date().toISOString()
       });
     }
-  }, []);
+  }, [aiMessages.length, addAiMessage]);
 
   const handleSendMessage = async (textToSend: string) => {
     if (!textToSend.trim() || aiLoading) return;

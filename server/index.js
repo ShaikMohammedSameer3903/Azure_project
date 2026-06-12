@@ -114,8 +114,9 @@ function validateJwt(req, res, next) {
 
   const token = authHeader.split(' ')[1];
 
-  // Dev-Mock Auth Handshake for local testing and demo mode simulations
-  if (token.startsWith('mock-token-') || token.startsWith('demo-token-')) {
+  // Dev-Mock Auth Handshake — DISABLED in production for security
+  const allowDemoTokens = process.env.NODE_ENV !== 'production' || process.env.ALLOW_DEMO_TOKENS === 'true';
+  if (allowDemoTokens && (token.startsWith('mock-token-') || token.startsWith('demo-token-'))) {
     const rawRole = token.replace('mock-token-', '').replace('demo-token-', '').toUpperCase();
     const role = ['OWNER', 'ADMIN', 'OPERATOR', 'VIEWER', 'AUDITOR'].includes(rawRole) ? rawRole : 'ADMIN';
     
@@ -184,6 +185,68 @@ app.use(`${apiPrefix}/ai`, validateJwt, tenantContext, auditLogger, require('./r
 app.use(`${apiPrefix}/reports`, validateJwt, tenantContext, auditLogger, require('./routes/reports'));
 app.use(`${apiPrefix}/audit`, validateJwt, tenantContext, auditLogger, require('./routes/audit'));
 app.use(`${apiPrefix}/sentinel`, validateJwt, tenantContext, auditLogger, require('./routes/sentinel'));
+app.use(`${apiPrefix}/governance`, validateJwt, tenantContext, auditLogger, require('./routes/governance'));
+
+// Compatibility Endpoints for Direct Verification Queries
+app.get(`${apiPrefix}/security`, validateJwt, tenantContext, auditLogger, async (req, res) => {
+  try {
+    const db = await getDatabase();
+    let subId = req.query.subscriptionId;
+    let sub;
+    if (subId) {
+      sub = await db.get('SELECT * FROM azure_subscriptions WHERE tenant_id = ? AND (id = ? OR subscription_id = ?)', [req.tenantId, subId, subId]);
+    } else {
+      sub = await db.get('SELECT * FROM azure_subscriptions WHERE tenant_id = ? LIMIT 1', [req.tenantId]);
+    }
+    if (!sub) return res.status(404).json({ error: 'Subscription not found or access denied.' });
+
+    const { getSecureScore } = require('./services/defenderService');
+    const score = await getSecureScore(req.tenantId, sub.id);
+    res.json({ secureScore: score, status: "success" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get(`${apiPrefix}/cost`, validateJwt, tenantContext, auditLogger, async (req, res) => {
+  try {
+    const db = await getDatabase();
+    let subId = req.query.subscriptionId;
+    let sub;
+    if (subId) {
+      sub = await db.get('SELECT * FROM azure_subscriptions WHERE tenant_id = ? AND (id = ? OR subscription_id = ?)', [req.tenantId, subId, subId]);
+    } else {
+      sub = await db.get('SELECT * FROM azure_subscriptions WHERE tenant_id = ? LIMIT 1', [req.tenantId]);
+    }
+    if (!sub) return res.status(404).json({ error: 'Subscription not found or access denied.' });
+
+    const { getCostConsumption } = require('./services/monitoringService');
+    const data = await getCostConsumption(req.tenantId, sub.id);
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get(`${apiPrefix}/backup`, validateJwt, tenantContext, auditLogger, async (req, res) => {
+  try {
+    const db = await getDatabase();
+    let subId = req.query.subscriptionId;
+    let sub;
+    if (subId) {
+      sub = await db.get('SELECT * FROM azure_subscriptions WHERE tenant_id = ? AND (id = ? OR subscription_id = ?)', [req.tenantId, subId, subId]);
+    } else {
+      sub = await db.get('SELECT * FROM azure_subscriptions WHERE tenant_id = ? LIMIT 1', [req.tenantId]);
+    }
+    if (!sub) return res.status(404).json({ error: 'Subscription not found or access denied.' });
+
+    const { getBackupHealth } = require('./services/monitoringService');
+    const data = await getBackupHealth(req.tenantId, sub.id);
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 // Status check endpoint (Refactored to show tenant status details)
 app.get('/api/status', validateJwt, tenantContext, async (req, res) => {

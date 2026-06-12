@@ -1,5 +1,6 @@
 // ============================================================
 // Main Application Entrypoint & Router
+// Enterprise Multi-Tenant Cloud Operations Platform
 // ============================================================
 
 import { Routes, Route, Navigate } from 'react-router-dom';
@@ -23,6 +24,10 @@ import Reports from './pages/Reports';
 import Settings from './pages/Settings';
 import Security from './pages/Security';
 import RiskManagement from './pages/RiskManagement';
+import GovernanceDashboard from './pages/GovernanceDashboard';
+import BackupDashboard from './pages/BackupDashboard';
+import CostDashboard from './pages/CostDashboard';
+import SOCDashboard from './pages/SOCDashboard';
 
 export default function App() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -97,17 +102,21 @@ export default function App() {
         <Header />
         <main className="page-content">
           <Routes>
-            <Route path="/"           element={<Dashboard />} />
-            <Route path="/resources"  element={<Resources />} />
-            <Route path="/monitoring" element={<Monitoring />} />
-            <Route path="/actions"    element={<Actions />} />
-            <Route path="/incidents"  element={<Incidents />} />
-            <Route path="/security"   element={<Security />} />
-            <Route path="/risk"       element={<RiskManagement />} />
-            <Route path="/ai"         element={<AiAssistant />} />
-            <Route path="/reports"    element={<Reports />} />
-            <Route path="/settings"   element={<Settings />} />
-            <Route path="*"           element={<Navigate to="/" replace />} />
+            <Route path="/"            element={<Dashboard />} />
+            <Route path="/resources"   element={<Resources />} />
+            <Route path="/monitoring"  element={<Monitoring />} />
+            <Route path="/cost"        element={<CostDashboard />} />
+            <Route path="/actions"     element={<Actions />} />
+            <Route path="/incidents"   element={<Incidents />} />
+            <Route path="/security"    element={<Security />} />
+            <Route path="/soc"         element={<SOCDashboard />} />
+            <Route path="/risk"        element={<RiskManagement />} />
+            <Route path="/governance"  element={<GovernanceDashboard />} />
+            <Route path="/backup"      element={<BackupDashboard />} />
+            <Route path="/ai"          element={<AiAssistant />} />
+            <Route path="/reports"     element={<Reports />} />
+            <Route path="/settings"    element={<Settings />} />
+            <Route path="*"            element={<Navigate to="/" replace />} />
           </Routes>
         </main>
       </div>

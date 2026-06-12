@@ -113,12 +113,16 @@ async function seedDemoData(database) {
     `, [id, email, displayName, role]);
   }
 
-  // 3. Seed Subscriptions
+  // 3. Seed Subscriptions (6 Industry Tenants + Corporate + DevTest)
   await database.run(`
     INSERT INTO azure_subscriptions (id, tenant_id, subscription_id, name, client_id, client_secret, azure_tenant_id, auth_type, status)
     VALUES 
       ('sub-healthcare-prod', 'demo-org-001', 'd10be971-c619-4887-8737-b8054407194e', 'Contoso Health-Production', 'demo-client-id', 'demo-client-secret', '808cc83e-a546-47e7-a03f-73a1ebba24f3', 'MSAL', 'Active'),
       ('sub-university-prod', 'demo-org-001', 'u55fe912-b129-4127-9827-c8051207901c', 'Contoso University-Production', 'demo-client-id', 'demo-client-secret', '808cc83e-a546-47e7-a03f-73a1ebba24f3', 'CREDENTIALS', 'Active'),
+      ('sub-government-prod', 'demo-org-001', 'g77ab821-a219-4317-8821-d9012308812a', 'Contoso Federal Agency-Production', 'demo-client-id', 'demo-client-secret', '808cc83e-a546-47e7-a03f-73a1ebba24f3', 'MSAL', 'Active'),
+      ('sub-banking-prod', 'demo-org-001', 'b88cd932-b329-4427-9932-e0123419923b', 'Contoso Financial-Production', 'demo-client-id', 'demo-client-secret', '808cc83e-a546-47e7-a03f-73a1ebba24f3', 'MSAL', 'Active'),
+      ('sub-retail-prod', 'demo-org-001', 'r99de043-c439-4537-a043-f1234520034c', 'Contoso Retail-Production', 'demo-client-id', 'demo-client-secret', '808cc83e-a546-47e7-a03f-73a1ebba24f3', 'CREDENTIALS', 'Active'),
+      ('sub-manufacturing-prod', 'demo-org-001', 'm11ef154-d549-4647-b154-g2345631145d', 'Contoso Industrial-Production', 'demo-client-id', 'demo-client-secret', '808cc83e-a546-47e7-a03f-73a1ebba24f3', 'MSAL', 'Active'),
       ('sub-corporate-it', 'demo-org-001', 'a34fe912-b129-4127-9827-c8051207901b', 'Contoso Corporate-IT', 'demo-client-id', 'demo-client-secret', '808cc83e-a546-47e7-a03f-73a1ebba24f3', 'CREDENTIALS', 'Active'),
       ('sub-dev-test', 'demo-org-001', 'e22dd811-e234-4112-a123-f34938491823', 'Contoso Sandbox-DevTest', 'demo-client-id', 'demo-client-secret', '808cc83e-a546-47e7-a03f-73a1ebba24f3', 'MSAL', 'Active')
   `);
@@ -307,6 +311,119 @@ async function seedDemoData(database) {
       status: 'Stopped',
       tags: { Environment: 'Development', Component: 'Testing' },
       payload: { size: 'Standard_B2s', os: 'Ubuntu 22.04 LTS', ip: '10.0.1.20', diskSizeGB: 30 }
+    },
+
+    // Sub 5: Contoso Federal Agency-Production (RG-Government-Prod)
+    {
+      id: '/subscriptions/g77ab821-a219-4317-8821-d9012308812a/resourceGroups/RG-Government-Prod/providers/Microsoft.Web/sites/app-gov-citizen-portal',
+      sub_id: 'sub-government-prod', rg: 'RG-Government-Prod',
+      name: 'app-gov-citizen-portal', type: 'Microsoft.Web/sites', location: 'usgovvirginia', status: 'Running',
+      tags: { Environment: 'Government', Component: 'Citizen Portal', Compliance: 'FedRAMP', Owner: 'Alex Thompson' },
+      payload: { state: 'Running', defaultHostName: 'app-gov-citizen-portal.azurewebsites.us', httpsOnly: true }
+    },
+    {
+      id: '/subscriptions/g77ab821-a219-4317-8821-d9012308812a/resourceGroups/RG-Government-Prod/providers/Microsoft.Sql/servers/sql-gov-records',
+      sub_id: 'sub-government-prod', rg: 'RG-Government-Prod',
+      name: 'sql-gov-records', type: 'Microsoft.Sql/servers', location: 'usgovvirginia', status: 'Active',
+      tags: { Environment: 'Government', Component: 'SQL Database', Classification: 'FOUO', Owner: 'Sarah Mitchell' },
+      payload: { sku: 'BC_Gen5_4', version: '12.0', state: 'Ready' }
+    },
+    {
+      id: '/subscriptions/g77ab821-a219-4317-8821-d9012308812a/resourceGroups/RG-Government-Prod/providers/Microsoft.KeyVault/vaults/kv-gov-prod-secrets',
+      sub_id: 'sub-government-prod', rg: 'RG-Government-Prod',
+      name: 'kv-gov-prod-secrets', type: 'Microsoft.KeyVault/vaults', location: 'usgovvirginia', status: 'Active',
+      tags: { Environment: 'Government', Component: 'Key Vault', Compliance: 'NIST-800-53', Owner: 'Security Admin' },
+      payload: { sku: 'Premium', softDeleteEnabled: true, purgeProtectionEnabled: true, secretCount: 24 }
+    },
+    {
+      id: '/subscriptions/g77ab821-a219-4317-8821-d9012308812a/resourceGroups/RG-Government-Prod/providers/Microsoft.OperationalInsights/workspaces/law-gov-prod-logs',
+      sub_id: 'sub-government-prod', rg: 'RG-Government-Prod',
+      name: 'law-gov-prod-logs', type: 'Microsoft.OperationalInsights/workspaces', location: 'usgovvirginia', status: 'Active',
+      tags: { Environment: 'Government', Component: 'Log Analytics', Owner: 'David Chen' },
+      payload: { sku: { name: 'PerGB2018' }, retentionInDays: 365 }
+    },
+
+    // Sub 6: Contoso Financial-Production (RG-Banking-Prod)
+    {
+      id: '/subscriptions/b88cd932-b329-4427-9932-e0123419923b/resourceGroups/RG-Banking-Prod/providers/Microsoft.Web/sites/app-bank-payment-gateway',
+      sub_id: 'sub-banking-prod', rg: 'RG-Banking-Prod',
+      name: 'app-bank-payment-gateway', type: 'Microsoft.Web/sites', location: 'eastus', status: 'Running',
+      tags: { Environment: 'Banking', Component: 'Payment Gateway', Compliance: 'PCI-DSS', Owner: 'Michael Park' },
+      payload: { state: 'Running', defaultHostName: 'app-bank-payment-gateway.azurewebsites.net', httpsOnly: true, runtime: '.NET | 8.0' }
+    },
+    {
+      id: '/subscriptions/b88cd932-b329-4427-9932-e0123419923b/resourceGroups/RG-Banking-Prod/providers/Microsoft.Compute/virtualMachines/vm-bank-fraud-detection',
+      sub_id: 'sub-banking-prod', rg: 'RG-Banking-Prod',
+      name: 'vm-bank-fraud-detection', type: 'Microsoft.Compute/virtualMachines', location: 'eastus', status: 'Running',
+      tags: { Environment: 'Banking', Component: 'Fraud Detection ML', Owner: 'Emily Rivera' },
+      payload: { size: 'Standard_NC6s_v3', os: 'Ubuntu 22.04 LTS (GPU)', ip: '10.1.2.10', diskSizeGB: 512 }
+    },
+    {
+      id: '/subscriptions/b88cd932-b329-4427-9932-e0123419923b/resourceGroups/RG-Banking-Prod/providers/Microsoft.Sql/servers/sql-bank-core-ledger',
+      sub_id: 'sub-banking-prod', rg: 'RG-Banking-Prod',
+      name: 'sql-bank-core-ledger', type: 'Microsoft.Sql/servers', location: 'eastus', status: 'Active',
+      tags: { Environment: 'Banking', Component: 'Core Ledger', Compliance: 'SOX', Owner: 'Alex Thompson' },
+      payload: { sku: 'BC_Gen5_8', version: '12.0', state: 'Ready', failoverGroupEnabled: true }
+    },
+    {
+      id: '/subscriptions/b88cd932-b329-4427-9932-e0123419923b/resourceGroups/RG-Banking-Prod/providers/Microsoft.KeyVault/vaults/kv-bank-prod-hsm',
+      sub_id: 'sub-banking-prod', rg: 'RG-Banking-Prod',
+      name: 'kv-bank-prod-hsm', type: 'Microsoft.KeyVault/vaults', location: 'eastus', status: 'Active',
+      tags: { Environment: 'Banking', Component: 'HSM Key Vault', Compliance: 'PCI-DSS', Owner: 'Security Admin' },
+      payload: { sku: 'Premium', softDeleteEnabled: true, purgeProtectionEnabled: true, hsmPoolEnabled: true, secretCount: 32 }
+    },
+
+    // Sub 7: Contoso Retail-Production (RG-Retail-Prod)
+    {
+      id: '/subscriptions/r99de043-c439-4537-a043-f1234520034c/resourceGroups/RG-Retail-Prod/providers/Microsoft.Web/sites/app-retail-ecommerce',
+      sub_id: 'sub-retail-prod', rg: 'RG-Retail-Prod',
+      name: 'app-retail-ecommerce', type: 'Microsoft.Web/sites', location: 'westeurope', status: 'Running',
+      tags: { Environment: 'Retail', Component: 'E-Commerce Platform', Compliance: 'GDPR', Owner: 'Emily Rivera' },
+      payload: { state: 'Running', defaultHostName: 'app-retail-ecommerce.azurewebsites.net', httpsOnly: true }
+    },
+    {
+      id: '/subscriptions/r99de043-c439-4537-a043-f1234520034c/resourceGroups/RG-Retail-Prod/providers/Microsoft.Web/sites/app-retail-pos-api',
+      sub_id: 'sub-retail-prod', rg: 'RG-Retail-Prod',
+      name: 'app-retail-pos-api', type: 'Microsoft.Web/sites', location: 'westeurope', status: 'Running',
+      tags: { Environment: 'Retail', Component: 'POS System API', Compliance: 'PCI-DSS', Owner: 'David Chen' },
+      payload: { state: 'Running', defaultHostName: 'app-retail-pos-api.azurewebsites.net', httpsOnly: true }
+    },
+    {
+      id: '/subscriptions/r99de043-c439-4537-a043-f1234520034c/resourceGroups/RG-Retail-Prod/providers/Microsoft.Cdn/profiles/cdn-retail-assets',
+      sub_id: 'sub-retail-prod', rg: 'RG-Retail-Prod',
+      name: 'cdn-retail-assets', type: 'Microsoft.Cdn/profiles', location: 'global', status: 'Active',
+      tags: { Environment: 'Retail', Component: 'CDN', Owner: 'Emily Rivera' },
+      payload: { sku: 'Premium_AzureFrontDoor', originResponseTimeoutSeconds: 60 }
+    },
+
+    // Sub 8: Contoso Industrial-Production (RG-Manufacturing-Prod)
+    {
+      id: '/subscriptions/m11ef154-d549-4647-b154-g2345631145d/resourceGroups/RG-Manufacturing-Prod/providers/Microsoft.Compute/virtualMachines/vm-mfg-scada-gateway',
+      sub_id: 'sub-manufacturing-prod', rg: 'RG-Manufacturing-Prod',
+      name: 'vm-mfg-scada-gateway', type: 'Microsoft.Compute/virtualMachines', location: 'centralus', status: 'Running',
+      tags: { Environment: 'Manufacturing', Component: 'SCADA Gateway', Compliance: 'IEC-62443', Owner: 'Alex Thompson' },
+      payload: { size: 'Standard_D4s_v5', os: 'Windows Server 2022 IoT', ip: '10.100.1.5', diskSizeGB: 256 }
+    },
+    {
+      id: '/subscriptions/m11ef154-d549-4647-b154-g2345631145d/resourceGroups/RG-Manufacturing-Prod/providers/Microsoft.Devices/IotHubs/iot-mfg-prod-hub',
+      sub_id: 'sub-manufacturing-prod', rg: 'RG-Manufacturing-Prod',
+      name: 'iot-mfg-prod-hub', type: 'Microsoft.Devices/IotHubs', location: 'centralus', status: 'Active',
+      tags: { Environment: 'Manufacturing', Component: 'IoT Hub', Owner: 'David Chen' },
+      payload: { sku: 'S2', capacity: 2, connectedDevices: 1450, dailyMessages: 28000 }
+    },
+    {
+      id: '/subscriptions/m11ef154-d549-4647-b154-g2345631145d/resourceGroups/RG-Manufacturing-Prod/providers/Microsoft.DigitalTwins/digitalTwinsInstances/dt-mfg-prod-twin',
+      sub_id: 'sub-manufacturing-prod', rg: 'RG-Manufacturing-Prod',
+      name: 'dt-mfg-prod-twin', type: 'Microsoft.DigitalTwins/digitalTwinsInstances', location: 'centralus', status: 'Active',
+      tags: { Environment: 'Manufacturing', Component: 'Digital Twin', Owner: 'Alex Thompson' },
+      payload: { modelCount: 84, twinCount: 320, relationshipCount: 580 }
+    },
+    {
+      id: '/subscriptions/m11ef154-d549-4647-b154-g2345631145d/resourceGroups/RG-Manufacturing-Prod/providers/Microsoft.Storage/storageAccounts/samfgtelemetry',
+      sub_id: 'sub-manufacturing-prod', rg: 'RG-Manufacturing-Prod',
+      name: 'samfgtelemetry', type: 'Microsoft.Storage/storageAccounts', location: 'centralus', status: 'Available',
+      tags: { Environment: 'Manufacturing', Component: 'Telemetry Storage', Owner: 'David Chen' },
+      payload: { sku: 'Standard_LRS', kind: 'StorageV2', accessTier: 'Hot' }
     }
   ];
 

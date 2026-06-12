@@ -89,12 +89,12 @@ export function useAzureData() {
       if (defenderRes.status === 'fulfilled' && defenderRes.value) {
         const defenderData = defenderRes.value;
         setDefenderStatus(defenderData);
-        if (defenderData.score) setSecurityScore(defenderData.score);
+        if (defenderData.secureScore) setSecurityScore(defenderData.secureScore);
       }
 
       // Handle Advisor
       if (advisorRes.status === 'fulfilled' && advisorRes.value) {
-        setAdvisorRecommendations(advisorRes.value);
+        setAdvisorRecommendations(advisorRes.value?.recommendations || []);
       }
 
       // Handle Service Health

@@ -52,14 +52,16 @@ export default function Security() {
       const [defRes, riskRes, advisorRes] = await Promise.allSettled([
         api.get<any>('/api/monitoring/defender', q),
         api.get<any>('/api/monitoring/risk', q),
-        api.get<any[]>('/api/monitoring/advisor', q),
+        api.get<any>('/api/monitoring/advisor', q),
       ]);
       if (defRes.status === 'fulfilled') {
         setDefenderStatus(defRes.value);
-        if (defRes.value?.score) setSecurityScore(defRes.value.score);
+        if (defRes.value?.secureScore) setSecurityScore(defRes.value.secureScore);
       }
       if (riskRes.status === 'fulfilled') setRiskScore(riskRes.value);
-      if (advisorRes.status === 'fulfilled') setAdvisorRecommendations(advisorRes.value);
+      if (advisorRes.status === 'fulfilled') {
+        setAdvisorRecommendations(advisorRes.value?.recommendations || []);
+      }
     } finally {
       setLoading(false);
     }

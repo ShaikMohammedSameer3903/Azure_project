@@ -100,6 +100,7 @@ Please provide helpful, specific, and actionable advice. Reference their actual 
   // 3. Local Simulated Chatbot engine (Highly contextual Heuristics)
   return runLocalAiHeuristics(userMessage, {
     resources,
+    totalResources,
     incidents,
     subscriptions,
     budgets,

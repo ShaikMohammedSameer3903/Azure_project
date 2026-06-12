@@ -41,3 +41,20 @@ temp_backend/
 # TLS certificates (generated locally)
 server/cert.pem
 server/key.pem
+
+# Environment files
+.env
+.env.production
+.env.local
+.env.*.local
+
+# Database files
+*.db
+*.db-shm
+*.db-wal
+
+# Zip archives
+*.zip
+
+# Generated reports
+test-results/*.json

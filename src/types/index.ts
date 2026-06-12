@@ -153,7 +153,7 @@ export interface BackupHealth {
 export interface BackupJob {
   id: string;
   name: string;
-  status: 'Completed' | 'InProgress' | 'Failed' | 'Cancelled';
+  status: 'Completed' | 'Succeeded' | 'InProgress' | 'Failed' | 'Cancelled' | 'Warning';
   operation: string;
   startTime: string;
   endTime?: string;
@@ -385,6 +385,8 @@ export interface CloudHealthScore {
   dimensions: CloudHealthDimension[];
   calculatedAt: string;
   errors: string[];
+  governance?: number;
+  overall?: number;
 }
 
 export interface ServiceHealthAlert {

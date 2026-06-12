@@ -1,5 +1,6 @@
 // ============================================================
 // Global State Management - Zustand Store
+// Enterprise Multi-Tenant Cloud Operations Platform
 // ============================================================
 
 import { create } from 'zustand';
@@ -21,16 +22,129 @@ import type {
   ServiceHealthAlert,
 } from '../types';
 
+// ── Industry Tenant Types ───────────────────────────────────
+export type IndustryTenant = 'All' | 'Healthcare' | 'Education' | 'Government' | 'Banking' | 'Retail' | 'Manufacturing';
+
+export interface TenantConfig {
+  id: string;
+  name: string;
+  industry: IndustryTenant;
+  icon: string;
+  color: string;
+  gradient: string;
+  complianceFrameworks: string[];
+  description: string;
+  subscriptionPrefix: string;
+}
+
+export const TENANT_CONFIGS: Record<Exclude<IndustryTenant, 'All'>, TenantConfig> = {
+  Healthcare: {
+    id: 'tenant-healthcare',
+    name: 'Contoso Health Systems',
+    industry: 'Healthcare',
+    icon: '🏥',
+    color: '#0078d4',
+    gradient: 'linear-gradient(135deg, #0078d4, #00B7C3)',
+    complianceFrameworks: ['HIPAA', 'HITECH', 'SOC 2'],
+    description: 'Patient data, EMR systems, medical devices',
+    subscriptionPrefix: 'sub-healthcare',
+  },
+  Education: {
+    id: 'tenant-education',
+    name: 'Contoso University',
+    industry: 'Education',
+    icon: '🎓',
+    color: '#8b5cf6',
+    gradient: 'linear-gradient(135deg, #8b5cf6, #a78bfa)',
+    complianceFrameworks: ['FERPA', 'COPPA', 'SOC 2'],
+    description: 'Student records, LMS, research systems',
+    subscriptionPrefix: 'sub-university',
+  },
+  Government: {
+    id: 'tenant-government',
+    name: 'Contoso Federal Agency',
+    industry: 'Government',
+    icon: '🏛️',
+    color: '#0e7c6b',
+    gradient: 'linear-gradient(135deg, #0e7c6b, #14b8a6)',
+    complianceFrameworks: ['FedRAMP', 'NIST 800-53', 'FISMA'],
+    description: 'Citizen services, classified workloads, federal IT',
+    subscriptionPrefix: 'sub-government',
+  },
+  Banking: {
+    id: 'tenant-banking',
+    name: 'Contoso Financial',
+    industry: 'Banking',
+    icon: '🏦',
+    color: '#b45309',
+    gradient: 'linear-gradient(135deg, #b45309, #f59e0b)',
+    complianceFrameworks: ['PCI-DSS', 'SOX', 'SOC 2', 'GLBA'],
+    description: 'Core banking, payment gateways, fraud detection',
+    subscriptionPrefix: 'sub-banking',
+  },
+  Retail: {
+    id: 'tenant-retail',
+    name: 'Contoso Retail Group',
+    industry: 'Retail',
+    icon: '🛍️',
+    color: '#dc2626',
+    gradient: 'linear-gradient(135deg, #dc2626, #f87171)',
+    complianceFrameworks: ['PCI-DSS', 'GDPR', 'CCPA'],
+    description: 'E-commerce, POS systems, supply chain',
+    subscriptionPrefix: 'sub-retail',
+  },
+  Manufacturing: {
+    id: 'tenant-manufacturing',
+    name: 'Contoso Industrial',
+    industry: 'Manufacturing',
+    icon: '🏭',
+    color: '#4f46e5',
+    gradient: 'linear-gradient(135deg, #4f46e5, #818cf8)',
+    complianceFrameworks: ['ISO 27001', 'IEC 62443', 'NIST CSF'],
+    description: 'IoT/SCADA, MES, digital twin, OT networks',
+    subscriptionPrefix: 'sub-manufacturing',
+  },
+};
+
+// ── Governance Types ────────────────────────────────────────
+export interface GovernanceData {
+  policyCompliance: number;
+  assignedPolicies: number;
+  compliantResources: number;
+  nonCompliantResources: number;
+  resourceLocks: number;
+  taggedResources: number;
+  untaggedResources: number;
+  policies: Array<{
+    name: string;
+    state: string;
+    compliance: number;
+    scope: string;
+  }>;
+}
+
+export interface SLAData {
+  overall: number;
+  target: number;
+  errorBudgetRemaining: number;
+  services: Array<{
+    name: string;
+    sla: number;
+    target: number;
+    status: 'met' | 'at-risk' | 'breached';
+  }>;
+}
+
 interface AppState {
   // ── Subscriptions ──
   subscriptions: AzureSubscription[];
   activeSubscriptionId: string | null;
   activeResourceGroupId: string | null;
-  activeEnvironment: 'All' | 'Healthcare' | 'University';
+  activeEnvironment: IndustryTenant;
   setSubscriptions: (subs: AzureSubscription[]) => void;
   setActiveSubscription: (id: string | null) => void;
   setActiveResourceGroup: (id: string | null) => void;
-  setActiveEnvironment: (env: 'All' | 'Healthcare' | 'University') => void;
+  setActiveEnvironment: (env: IndustryTenant) => void;
 
   // ── Resources ──
   resources: AzureResource[];
@@ -61,6 +175,14 @@ interface AppState {
   setCloudHealthScore: (score: CloudHealthScore | null) => void;
   setDefenderStatus: (status: DefenderStatus | null) => void;
   setServiceHealthAlerts: (alerts: ServiceHealthAlert[]) => void;
+
+  // ── Governance ──
+  governanceData: GovernanceData | null;
+  setGovernanceData: (data: GovernanceData | null) => void;
+
+  // ── SLA/SLO Tracking ──
+  slaData: SLAData | null;
+  setSlaData: (data: SLAData | null) => void;
 
   // ── Incidents ──
   incidents: Incident[];
@@ -143,6 +265,14 @@ export const useAppStore = create<AppState>((set) => ({
   setCloudHealthScore: (cloudHealthScore) => set({ cloudHealthScore }),
   setDefenderStatus: (defenderStatus) => set({ defenderStatus }),
   setServiceHealthAlerts: (serviceHealthAlerts) => set({ serviceHealthAlerts }),
+
+  // ── Governance ──
+  governanceData: null,
+  setGovernanceData: (governanceData) => set({ governanceData }),
+
+  // ── SLA/SLO ──
+  slaData: null,
+  setSlaData: (slaData) => set({ slaData }),
 
   // ── Incidents ──
   incidents: [],
