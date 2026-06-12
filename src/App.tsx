@@ -7,6 +7,10 @@ import { useAuth } from './providers/AuthProvider';
 import Sidebar from './components/layout/Sidebar';
 import Header from './components/layout/Header';
 
+import { useEffect } from 'react';
+import { useAppStore } from './store/appStore';
+import { api } from './services/api';
+
 // Pages
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
@@ -22,6 +26,38 @@ import RiskManagement from './pages/RiskManagement';
 
 export default function App() {
   const { isAuthenticated, isLoading } = useAuth();
+  const { subscriptions, setSubscriptions, activeSubscriptionId, setActiveSubscription, setResources } = useAppStore();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      const loadSubscriptions = async () => {
+        try {
+          const subs = await api.get<any[]>('/api/subscriptions');
+          setSubscriptions(subs);
+          if (subs.length > 0 && !activeSubscriptionId) {
+            setActiveSubscription(subs[0].id);
+          }
+        } catch (err) {
+          console.error('Failed to load subscriptions globally:', err);
+        }
+      };
+      loadSubscriptions();
+    }
+  }, [isAuthenticated, activeSubscriptionId, setSubscriptions, setActiveSubscription]);
+
+  useEffect(() => {
+    if (isAuthenticated && activeSubscriptionId) {
+      const loadResources = async () => {
+        try {
+          const res = await api.get<any[]>('/api/resources', { params: { subscriptionId: activeSubscriptionId } });
+          setResources(res);
+        } catch (err) {
+          console.error('Failed to load resources globally:', err);
+        }
+      };
+      loadResources();
+    }
+  }, [isAuthenticated, activeSubscriptionId, setResources]);
 
   if (isLoading) {
     return (

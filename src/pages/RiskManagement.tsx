@@ -8,6 +8,7 @@ import {
   RefreshCw, Lock, ArrowUpRight, Search, Filter,
 } from 'lucide-react';
 import { useAppStore } from '../store/appStore';
+import { api } from '../services/api';
 
 function RiskGauge({ pct, size = 120, strokeWidth = 10, color = 'var(--azure-600)', label }: { pct: number; size?: number; strokeWidth?: number; color?: string; label?: string }) {
   const r = (size - strokeWidth * 2) / 2;
@@ -44,12 +45,10 @@ export default function RiskManagement() {
     if (!activeSubscriptionId) return;
     setLoading(true);
     try {
-      const res = await fetch(`/api/monitoring/risk?subscriptionId=${activeSubscriptionId}`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      const data = await api.get<any>('/api/monitoring/risk', {
+        params: { subscriptionId: activeSubscriptionId }
       });
-      if (res.ok) {
-        setRiskScore(await res.json());
-      }
+      setRiskScore(data);
     } catch (err) {
       console.error('[RiskManagement] Failed to fetch risk data:', err);
     } finally {

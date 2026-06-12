@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react';
 import { useAppStore } from '../store/appStore';
+import { api } from '../services/api';
 
 export function useAzureData() {
   const {
@@ -49,56 +50,56 @@ export function useAzureData() {
         advisorRes,
         healthRes
       ] = await Promise.allSettled([
-        fetch(`/api/resources${qs}`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }),
-        fetch(`/api/resources/groups/${activeSubscriptionId}`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }),
-        fetch(`/api/monitoring/cost${qs}`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }),
-        fetch(`/api/monitoring/risk${qs}`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }),
-        fetch(`/api/monitoring/cloud-health${qs}`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }),
-        fetch(`/api/monitoring/defender${qs}`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }),
-        fetch(`/api/monitoring/advisor${qs}`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }),
-        fetch(`/api/monitoring/health${qs}`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } })
+        api.get<any>(`/api/resources${qs}`),
+        api.get<any>(`/api/resources/groups/${activeSubscriptionId}`),
+        api.get<any>(`/api/monitoring/cost${qs}`),
+        api.get<any>(`/api/monitoring/risk${qs}`),
+        api.get<any>(`/api/monitoring/cloud-health${qs}`),
+        api.get<any>(`/api/monitoring/defender${qs}`),
+        api.get<any>(`/api/monitoring/advisor${qs}`),
+        api.get<any>(`/api/monitoring/health${qs}`)
       ]);
 
       // Handle Resources
-      if (resourcesRes.status === 'fulfilled' && resourcesRes.value.ok) {
-        setResources(await resourcesRes.value.json());
+      if (resourcesRes.status === 'fulfilled' && resourcesRes.value) {
+        setResources(resourcesRes.value);
       }
       
       // Handle Resource Groups
-      if (groupsRes.status === 'fulfilled' && groupsRes.value.ok) {
-        setResourceGroups(await groupsRes.value.json());
+      if (groupsRes.status === 'fulfilled' && groupsRes.value) {
+        setResourceGroups(groupsRes.value);
       }
 
       // Handle Cost
-      if (costRes.status === 'fulfilled' && costRes.value.ok) {
-        setCostSummary(await costRes.value.json());
+      if (costRes.status === 'fulfilled' && costRes.value) {
+        setCostSummary(costRes.value);
       }
 
       // Handle Risk
-      if (riskRes.status === 'fulfilled' && riskRes.value.ok) {
-        setRiskScore(await riskRes.value.json());
+      if (riskRes.status === 'fulfilled' && riskRes.value) {
+        setRiskScore(riskRes.value);
       }
 
       // Handle Cloud Health
-      if (cloudHealthRes.status === 'fulfilled' && cloudHealthRes.value.ok) {
-        setCloudHealthScore(await cloudHealthRes.value.json());
+      if (cloudHealthRes.status === 'fulfilled' && cloudHealthRes.value) {
+        setCloudHealthScore(cloudHealthRes.value);
       }
 
       // Handle Defender
-      if (defenderRes.status === 'fulfilled' && defenderRes.value.ok) {
-        const defenderData = await defenderRes.value.json();
+      if (defenderRes.status === 'fulfilled' && defenderRes.value) {
+        const defenderData = defenderRes.value;
         setDefenderStatus(defenderData);
         if (defenderData.score) setSecurityScore(defenderData.score);
       }
 
       // Handle Advisor
-      if (advisorRes.status === 'fulfilled' && advisorRes.value.ok) {
-        setAdvisorRecommendations(await advisorRes.value.json());
+      if (advisorRes.status === 'fulfilled' && advisorRes.value) {
+        setAdvisorRecommendations(advisorRes.value);
       }
 
       // Handle Service Health
-      if (healthRes.status === 'fulfilled' && healthRes.value.ok) {
-        setServiceHealthAlerts(await healthRes.value.json());
+      if (healthRes.status === 'fulfilled' && healthRes.value) {
+        setServiceHealthAlerts(healthRes.value);
       }
 
       setLastUpdated(new Date().toISOString());

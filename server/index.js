@@ -40,7 +40,7 @@ let credentials = null;
 const keyPath = path.resolve(__dirname, './key.pem');
 const certPath = path.resolve(__dirname, './cert.pem');
 // Load SSL certificates only in production
-if (process.env.NODE_ENV !== 'development' && fs.existsSync(keyPath) && fs.existsSync(certPath)) {
+if (process.env.NODE_ENV === 'production' && fs.existsSync(keyPath) && fs.existsSync(certPath)) {
   try {
     credentials = {
       key: fs.readFileSync(keyPath, 'utf8'),
@@ -120,7 +120,7 @@ function validateJwt(req, res, next) {
     const role = ['OWNER', 'ADMIN', 'OPERATOR', 'VIEWER', 'AUDITOR'].includes(rawRole) ? rawRole : 'ADMIN';
     
     req.user = {
-      oid: `demo-oid-${role.toLowerCase()}`,
+      oid: `demo-${role.toLowerCase()}-001`,
       upn: `${role.toLowerCase()}@cloudops-demo.com`,
       roles: [role],
       name: `${role.charAt(0) + role.slice(1).toLowerCase()} Demo User`,

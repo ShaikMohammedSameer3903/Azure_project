@@ -34,7 +34,7 @@ export default function AiAssistant() {
 
   // Set default welcome message if chat history is empty
   useEffect(() => {
-    if (aiMessages.length === 0) {
+    if (aiMessages.length === 0 || !aiMessages.some(m => m.id === 'welcome-msg')) {
       addAiMessage({
         id: 'welcome-msg',
         role: 'assistant',

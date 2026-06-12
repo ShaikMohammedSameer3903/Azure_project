@@ -7,6 +7,7 @@ import { useMsal, useIsAuthenticated } from '@azure/msal-react';
 import { InteractionRequiredAuthError, type AccountInfo } from '@azure/msal-browser';
 import { loginRequest, azureTokenRequest, isDemoMode } from '../config/authConfig';
 import type { User, UserRole } from '../types';
+import { api } from '../services/api';
 
 interface AuthContextType {
   user: User | null;
@@ -181,6 +182,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return null;
     }
   }, [instance, user]);
+
+  useEffect(() => {
+    api.setTokenProvider(getAzureToken);
+  }, [getAzureToken]);
 
   return (
     <AuthContext.Provider
